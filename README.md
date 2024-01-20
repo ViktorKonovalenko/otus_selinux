@@ -19,56 +19,21 @@ Selinux запущен в режиме блокировки запрещенны
 7) Делаем curl странички<br>
 ![image](https://github.com/ViktorKonovalenko/otus_selinux/assets/32430041/fb77e116-ade8-47ed-842e-cf2bee98dc04)
 8) Проверяем параметр nis_enabled с помощью команды:<br>
-[root@selinux vagrant]# getsebool -a | grep nis_enabled<br>
-nis_enabled --> on<br>
+![image](https://github.com/ViktorKonovalenko/otus_selinux/assets/32430041/4e7125bc-7359-4146-8f69-43ba1c97efcb)<br>
 9) Отключим данный параметр и попробуем второй вариант включения порта в Selinux<br>
-[root@selinux vagrant]# setsebool -P nis_enabled off<br>
-[root@selinux vagrant]# getsebool -a | grep nis_enabled<br>
-nis_enabled --> off<br>
+![image](https://github.com/ViktorKonovalenko/otus_selinux/assets/32430041/9d9f6d82-08d2-4ba0-b371-0598446ac9e1)<br>
 10) Просмотрим типы http трафика<br>
-[root@selinux vagrant]# semanage port -l | grep http<br>
-http_cache_port_t              tcp      8080, 8118, 8123, 10001-10010<br>
-http_cache_port_t              udp      3130<br>
-http_port_t                    tcp      80, 81, 443, 488, 8008, 8009, 8443, 9000<br>
-pegasus_http_port_t            tcp      5988<br>
-pegasus_https_port_t           tcp      5989<br>
+![image](https://github.com/ViktorKonovalenko/otus_selinux/assets/32430041/6f9b997d-ffc5-47f5-af9a-32ef1223e01c)<br>
 Видим что порта 4881 нет<br>
 11) Добавляем порт 4881 <br>
-[root@selinux vagrant]# semanage port -l | grep http<br>
-http_cache_port_t              tcp      8080, 8118, 8123, 10001-10010<br>
-http_cache_port_t              udp      3130<br>
-http_port_t                    tcp      4881, 80, 81, 443, 488, 8008, 8009, 8443, 9000<br>
-pegasus_http_port_t            tcp      5988<br>
-pegasus_https_port_t           tcp      5989<br>
+![image](https://github.com/ViktorKonovalenko/otus_selinux/assets/32430041/c19e966e-79a9-443d-bd17-ee8c96ff52e5)<br>
 Порт 4881 стал доступен<br>
 12) Перезагружаем nginx и видим статус active<br>
-[root@selinux vagrant]# systemctl restart nginx<br>
-[root@selinux vagrant]# systemctl status nginx<br>
-● nginx.service - The nginx HTTP and reverse proxy server<br>
-   Loaded: loaded (/usr/lib/systemd/system/nginx.service; disabled; vendor preset: disabled)<br>
-   Active: active (running) since Sat 2024-01-20 09:31:33 UTC; 15s ago<br>
-  Process: 5337 ExecStart=/usr/sbin/nginx (code=exited, status=0/SUCCESS)<br>
-  Process: 5334 ExecStartPre=/usr/sbin/nginx -t (code=exited, status=0/SUCCESS)<br>
-  Process: 5332 ExecStartPre=/usr/bin/rm -f /run/nginx.pid (code=exited, status=0/SUCCESS)<br>
- Main PID: 5340 (nginx)<br>
-   CGroup: /system.slice/nginx.service<br>
-           ├─5340 nginx: master process /usr/sbin/nginx<br>
-           └─5341 nginx: worker process<br>
-
-Jan 20 09:31:32 selinux systemd[1]: Starting The nginx HTTP and reverse proxy server...<br>
-Jan 20 09:31:33 selinux nginx[5334]: nginx: the configuration file /etc/nginx/nginx.conf syntax is ok<br>
-Jan 20 09:31:33 selinux nginx[5334]: nginx: configuration file /etc/nginx/nginx.conf test is successful<br>
-Jan 20 09:31:33 selinux systemd[1]: Started The nginx HTTP and reverse proxy server.<br>
+![image](https://github.com/ViktorKonovalenko/otus_selinux/assets/32430041/8841bd1b-4058-4f0a-a10a-0b06b5f98aca)<br>
 13) Удаляем порт<br>
-[root@selinux vagrant]# semanage port -d -t http_port_t -p tcp 4881<br>
-[root@selinux vagrant]# semanage port -l | grep http<br>
-http_cache_port_t              tcp      8080, 8118, 8123, 10001-10010<br>
-http_cache_port_t              udp      3130<br>
-http_port_t                    tcp      80, 81, 443, 488, 8008, 8009, 8443, 9000<br>
-pegasus_http_port_t            tcp      5988<br>
-pegasus_https_port_t           tcp      5989<br>
+![image](https://github.com/ViktorKonovalenko/otus_selinux/assets/32430041/9c16644f-5b06-48be-8a05-4ebd8225a1af)<br>
 14) С помощью утилиты audit2allow чтобы сделать модуль на основе логов для Selinux, который разрешит работу nginx на нестандартном порту<br>
-![image](https://github.com/ViktorKonovalenko/otus_selinux/assets/32430041/8cededdd-a510-48a8-8f21-da279ba7289e)
+![image](https://github.com/ViktorKonovalenko/otus_selinux/assets/32430041/8cededdd-a510-48a8-8f21-da279ba7289e)<br>
 15) Модуль сообщил команду которую необходимо запустить для открытия порта <br>
 [root@selinux vagrant]# semodule -i nginx.pp<br>
 [root@selinux vagrant]#<br>
