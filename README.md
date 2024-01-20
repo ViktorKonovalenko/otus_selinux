@@ -3,7 +3,7 @@
  ![image](https://github.com/ViktorKonovalenko/otus_selinux/assets/32430041/f6437842-b095-4d50-9922-70ac2fb38e17)
 видим что nginx в ошибке<br>
 2) Проверяем работу Selinux<br>
-![image](https://github.com/ViktorKonovalenko/otus_selinux/assets/32430041/91b19115-942c-464e-895d-5e1d935ef2e2)
+![image](https://github.com/ViktorKonovalenko/otus_selinux/assets/32430041/91b19115-942c-464e-895d-5e1d935ef2e2)<br>
 Selinux запущен в режиме блокировки запрещенных активностей<br>
 3) Проверим слушается ли в системе порт 4881<br>
 [root@selinux vagrant]# netstat -tulnp | grep 4881<br>
