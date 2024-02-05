@@ -40,3 +40,37 @@ Selinux запущен в режиме блокировки запрещенны
 16) Проверяем работу nginx<br>
 ![image](https://github.com/ViktorKonovalenko/otus_selinux/assets/32430041/3ae69b94-8772-47f0-9d14-771fa2cf26b2)
 Все работает!
+
+
+<h2>2 часть ДЗ</h2>
+Данную задачу можно решить двумя способами, это правкой SELinux отталкиваясь от конфигов и сохраняя строй ФС, либо перемещением файла DNS-зоны, и изменением конфига named.conf, без изменения SELinux. Выбирая из двух вариантов, я выбиру второй, потому что он прозрачен, хоть и неочевиден, всегда можно посмотреть что где лежит, и будет легче объяснить настройку другому специалисту, чем изменение контекстов SELinux. Выполнение его я и продемонстрирую<br>
+Подключаемся на клиент и пробуем добавить зону. Видим, что возникает ошибка<br>
+![image](https://github.com/ViktorKonovalenko/otus_selinux/assets/32430041/ec0cd76a-6aa6-4f24-b48a-fb6f9f4f6ae0)
+Подключаемся к клиенту и проверяем с помощью audit2why логи <br>
+<pre>cat /var/log/audit/audit.log | audit2why</pre>
+![image](https://github.com/ViktorKonovalenko/otus_selinux/assets/32430041/673d544f-30f1-4002-a52a-f340a0834746)<br>
+Исходя из логов видим разные права на файл зоны.<br>
+Проверяем файл конфига зон 
+<pre>cat /etc/named.conf</pre>
+![image](https://github.com/ViktorKonovalenko/otus_selinux/assets/32430041/6975bda7-a3f6-4bc3-a1da-9daa2180ff47)<br>
+Видим расположение файла и проверим его контекст<br>
+![image](https://github.com/ViktorKonovalenko/otus_selinux/assets/32430041/3b16929d-7310-4305-8015-a3da62951af3)<br>
+Видим что тип контекста несоответствует. Посмотрим контексты для каталога<br>
+![image](https://github.com/ViktorKonovalenko/otus_selinux/assets/32430041/e2bd1f72-c962-4d75-89c1-2d9cb6e76951)<br>
+Из вывода видим что нужный нам контекст настроен на пути /var/named/dynamic/, переносим нужный журнал зоны в настроеный каталог меняя пользователя на named чтобы bind мог с ним работать, а также редактируем named.conf<br>
+![image](https://github.com/ViktorKonovalenko/otus_selinux/assets/32430041/d63e36fe-3d3d-48d5-839b-70dfdd5e1d1e)<br>
+![image](https://github.com/ViktorKonovalenko/otus_selinux/assets/32430041/efc4021d-1012-4cbd-a7ab-ee0b70c83e2e)<br>
+Перезапускаем службу<br>
+<pre>systemctl restart named</pre>
+Проверяем изменения контекста<br>
+![image](https://github.com/ViktorKonovalenko/otus_selinux/assets/32430041/c774caab-f3e3-46d4-a5b6-bbb1899505bd)<br>
+Пробуем добавить зону на клиенте
+![image](https://github.com/ViktorKonovalenko/otus_selinux/assets/32430041/c892ec36-6a47-4228-bbd9-193e5d02d3f8)<br>
+Правила применились<br>
+Проверяем еще раз 
+![image](https://github.com/ViktorKonovalenko/otus_selinux/assets/32430041/8b74481f-5b9a-4129-9b87-2ce3ac38f419)<br>
+Работает!
+
+
+
+
